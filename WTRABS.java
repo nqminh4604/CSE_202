@@ -33,7 +33,7 @@ class WTRABS {
             results.add(new Result(v.id, v.contain));
             return;
         }
-        double splitWater = v.contain / v.adjList.size();
+        double splitWater = (v.contain == 0) ? 0 : v.contain / v.adjList.size();
         for (Vertex vertex : v.adjList) {
             if (vertex.isVisited == false) {
                 dfs(vertex, splitWater);
