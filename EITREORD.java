@@ -1,86 +1,53 @@
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.InputMismatchException;
 import java.util.List;
+import java.util.Queue;
 
-class WTRABS {
-
-    static StringBuilder sb = new StringBuilder();
+public class EITREORD {
+    StringBuilder sb = new StringBuilder();
 
     public static void main(String[] args) {
-        Vertex[] g = readGraph(ni());
-        dfs(g[0], 0);
-        for (Vertex v : g) {
-            if (v.adjList.size() == 0) {
-                sb.append(String.format(v.id + " %.4f \n", v.contain));
-            }
+        int numberOfNode = ni();
+        Queue<Integer> preorder = new ArrayDeque<>();
+        int[] inorder = new int[numberOfNode];
+
+        for (int i = 0; i < numberOfNode; i++) {
+            preorder.add(ni());
         }
-        System.out.println(sb);
+
+        for (int i = 0; i < inorder.length; i++) {
+            inorder[i] = ni();
+        }
+
+
     }
 
-    public static void dfs(Vertex v, double water) {
-        v.Visited();
-        v.contain += water;
-        if (v.adjList.size() == 0) {
-            return;
-        }
-        double splitWater = v.contain / v.adjList.size();
-        for (Vertex vertex : v.adjList) {
-            if (vertex.isVisited == false) {
-                dfs(vertex, splitWater);
-            }
-        }
-    }
-
-    public static Vertex[] readGraph(int numVertices) {
-        int numEdges = numVertices - 1;
-        Vertex[] g = new Vertex[numVertices];
-
-        for (int i = 0; i < numVertices; i++) {
-            g[i] = new Vertex(i);
-        }
-
-        for (int i = 0; i < numVertices; i++) {
-            g[i].setContain(nd());
-        }
-
-        for (int i = 0; i < numEdges; i++) {
-            int a = ni();
-            int b = ni();
-
-            g[b].addEdge(g[a]);
-
-            g[b].adjList.sort((v1, v2) -> {
-                return v1.id - v2.id;
-            });
-        }
-
-        return g;
+    public static void postOrder() {
+        
     }
 
     static class Vertex {
         int id;
-        double contain;
-        boolean isVisited = false;
+        boolean visited;
         List<Vertex> adjList = new ArrayList<>();
 
         public Vertex(int id) {
             this.id = id;
+            this.visited = false;
         }
 
-        public void setContain(double contain) {
-            this.contain = contain;
+        public void visit() {
+            this.visited = true;
         }
 
-        public void addEdge(Vertex v) {
-            adjList.add(v);
+        public void addAdj(Vertex b) {
+            this.adjList.add(b);
         }
 
-        public void Visited() {
-            this.isVisited = true;
-        }
     }
 
     static InputStream is = System.in;

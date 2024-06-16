@@ -5,81 +5,74 @@ import java.util.Arrays;
 import java.util.InputMismatchException;
 import java.util.List;
 
-class WTRABS {
-
-    static StringBuilder sb = new StringBuilder();
+public class EIGREENCITY {
 
     public static void main(String[] args) {
-        Vertex[] g = readGraph(ni());
-        dfs(g[0], 0);
-        for (Vertex v : g) {
-            if (v.adjList.size() == 0) {
-                sb.append(String.format(v.id + " %.4f \n", v.contain));
+        StringBuilder sb = new StringBuilder();
+        int numU = ni();
+        int root = ni();
+        Unit[] g = readUnits(numU);
+
+        for (Unit unit : g) {
+            if (unit.adjList.size() == 0) {
+                g[ni()].trees = ni();
             }
         }
+
+        DFS(g[root]);
+
+        for (Unit unit : g) {
+            sb.append(unit.id).append(" ").append(unit.trees).append("\n");
+        }
+
         System.out.println(sb);
     }
 
-    public static void dfs(Vertex v, double water) {
-        v.Visited();
-        v.contain += water;
-        if (v.adjList.size() == 0) {
-            return;
-        }
-        double splitWater = v.contain / v.adjList.size();
-        for (Vertex vertex : v.adjList) {
-            if (vertex.isVisited == false) {
-                dfs(vertex, splitWater);
+    public static void DFS(Unit u) {
+        u.visited = true;
+        for (Unit unit : u.adjList) {
+            if (unit.visited == false) {
+                DFS(unit);
+                u.trees += unit.trees;
             }
         }
     }
 
-    public static Vertex[] readGraph(int numVertices) {
-        int numEdges = numVertices - 1;
-        Vertex[] g = new Vertex[numVertices];
+    public static Unit[] readUnits(int numU) {
+        int numE = numU - 1;
+        Unit[] graph = new Unit[numU];
 
-        for (int i = 0; i < numVertices; i++) {
-            g[i] = new Vertex(i);
+        for (int i = 0; i < numU; i++) {
+            graph[i] = new Unit(i);
         }
 
-        for (int i = 0; i < numVertices; i++) {
-            g[i].setContain(nd());
+        for (int i = 0; i < numE; i++) {
+            Unit a = graph[ni()];
+            Unit b = graph[ni()];
+
+            a.addAdj(b);
         }
 
-        for (int i = 0; i < numEdges; i++) {
-            int a = ni();
-            int b = ni();
-
-            g[b].addEdge(g[a]);
-
-            g[b].adjList.sort((v1, v2) -> {
-                return v1.id - v2.id;
-            });
-        }
-
-        return g;
+        return graph;
     }
 
-    static class Vertex {
-        int id;
-        double contain;
-        boolean isVisited = false;
-        List<Vertex> adjList = new ArrayList<>();
+    static class Unit {
 
-        public Vertex(int id) {
+        int id;
+        boolean visited = false;
+        List<Unit> adjList = new ArrayList<>();
+        long trees = 0;
+
+        public Unit(int id) {
             this.id = id;
         }
 
-        public void setContain(double contain) {
-            this.contain = contain;
+        public void setTrees(long trees) {
+            this.trees = trees;
         }
 
-        public void addEdge(Vertex v) {
-            adjList.add(v);
-        }
-
-        public void Visited() {
-            this.isVisited = true;
+        public void addAdj(Unit u) {
+            this.adjList.add(u);
         }
     }
 
