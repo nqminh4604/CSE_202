@@ -1,150 +1,129 @@
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.InputMismatchException;
+import java.util.List;
+import java.util.PriorityQueue;
+import java.util.Queue;
 
-class EIFOLTRE2 {
-
-    static InputReader rd;
-    static StringBuilder sb = new StringBuilder();
+class SPANNINGTREE_PRIM {
+    static InputReader reader;
+    static Node[] nodes;
 
     public static void main(String[] args) throws IOException {
-        rd = new InputReader(System.in);
-        Map<String, Vertex> tree = readGraph();
-        Vertex root = tree.get(rd.next());
-        root.setLast();
-        root.setRank(0);
-        dfs(root);
-        System.out.println(sb);
-    }
-
-    public static void dfs(Vertex root) {
-        root.setVisited();
-        if (root.rank > 0) {
-            draw(root);
-        }
-        sb.append(root.name).append("\n");
-
-        for (Vertex adj : root.adjList) {
-            if (adj.visited == false) {
-                adj.setVisited();
-                root.check.add(adj);
+        reader = new InputReader(System.in);
+        nodes = readGraph();
+        prim();
+        long sum = 0;
+        for (int i = 1; i < nodes.length; i++) {
+            Node n = nodes[i];
+            if (n.prevNode != null) {
+                sum += n.distance;
+            } else {
+                sum = -1;
+                break;
             }
         }
+        System.out.println(sum);
+    }
 
-        int size = root.check.size();
-        for (int i = 0; i < size; i++) {
-            Vertex check = root.check.get(i);
-                check.setRank(root.rank + 1);
-                if (root.isLast == false) {
-                    check.setPreFile(root);
+    public static void prim() {
+        Queue<Edge> edgeQ = new PriorityQueue<>((e1, e2) -> Long.compare(e1.weight, e2.weight));
+        Queue<Node> nodeQ = new PriorityQueue<>((n1, n2) -> Long.compare(n1.distance, n2.distance));
+
+        int count = 0;
+        nodes[0].distance = 0;
+        nodes[0].visited = true;
+        for (int i = 0; i < nodes.length; i++) {
+            nodeQ.add(nodes[i]);
+        }
+        
+        while (count < nodes.length || !nodeQ.isEmpty()) {
+            Node curNode = nodeQ.poll();
+            if (curNode == null) {
+                return;
+            }
+            for (Edge edge : curNode.adjNodes) {
+                if (nodes[edge.next.id].visited == false) {
+                    edgeQ.add(edge);
                 }
-                if (i == size - 1) {
-                    check.setLast();
-                }
-                dfs(check);
+            }
+            if (edgeQ.isEmpty()) {
+                break;
+            }
+            Edge selectedEdge = edgeQ.poll();
+            int id = selectedEdge.next.id;
+            if (nodes[id].distance > selectedEdge.weight) {
+                nodes[id].distance = selectedEdge.weight;
+                nodes[id].prevNode = curNode;
+                nodes[id].visited = true;
+                nodeQ.add(nodes[id]);
+                count++;
+            }
         }
     }
 
-    public static void draw(Vertex v) {
-        Stack<Integer> stack = new Stack<>();
-        Vertex pre = v.preFile;
-        while (pre != null) {
-            stack.add(pre.rank);
-            pre = pre.preFile;
+    public static Node[] readGraph() {
+        int numN = reader.nextInt();
+        int numE = reader.nextInt();
+        Node[] g = new Node[numN];
+
+        for (int i = 0; i < g.length; i++) {
+            g[i] = new Node(i);
         }
 
-        int temp = 0;
-        while (!stack.isEmpty()) {
-            int save = temp;
-            temp = stack.pop() - save;
-            drawSpace(temp++);
-            sb.append("│   ");
+        for (int i = 0; i < numE; i++) {
+            Node a = g[reader.nextInt()];
+            Node b = g[reader.nextInt()];
+
+            Long w = reader.nextLong();
+            Edge e1 = new Edge(w, b);
+            Edge e2 = new Edge(w, a);
+
+            a.addAdj(e1);
+            b.addAdj(e2);
         }
 
-        drawSpace(v.rank - temp);
-
-        if (v.isLast) {
-            sb.append("└───");
-        } else {
-            sb.append("├───");
-        }
+        return g;
     }
 
-    public static void drawSpace(int rank) {
-        if (rank <= 1) {
-            return;
-        }
-        for (int i = 0; i < rank - 1; i++) {
-            sb.append("    ");
-        }
-    }
-
-    public static HashMap<String, Vertex> readGraph() {
-        int nVertex = rd.nextInt();
-        HashMap<String, Vertex> graph = new HashMap<>();
-        for (int i = 0; i < nVertex - 1; i++) {
-            String name1 = rd.next();
-            String name2 = rd.next();
-
-            Vertex a = graph.getOrDefault(name1, new Vertex(name1));
-            Vertex b = graph.getOrDefault(name2, new Vertex(name2));
-
-            a.addAdjecentVertex(b);
-            b.addAdjecentVertex(a);
-
-            a.sort();
-            b.sort();
-
-            graph.put(name1, a);
-            graph.put(name2, b);
-        }
-
-        return graph;
-    }
-
-    static class Vertex {
-
-        String name;
-        int rank;
-        Vertex preFile;
+    static class Node {
+        int id;
+        long distance = Long.MAX_VALUE;
         boolean visited = false;
-        boolean isLast = false;
-        List<Vertex> adjList = new ArrayList<>();
-        List<Vertex> check = new ArrayList<>();
+        Node prevNode;
+        List<Edge> adjNodes = new ArrayList<>();
 
-        public Vertex(String name) {
-            this.name = name;
+        public Node(int id) {
+            this.id = id;
         }
 
-        public void setPreFile(Vertex preFile) {
-            this.preFile = preFile;
+        public void addAdj(Edge node) {
+            this.adjNodes.add(node);
         }
 
-        public void setLast() {
-            this.isLast = true;
+        public void setDistance(long distance) {
+            this.distance = distance;
         }
 
-        public void addAdjecentVertex(Vertex v) {
-            this.adjList.add(v);
+        public void setPrevNode(Node prevNode) {
+            this.prevNode = prevNode;
         }
 
-        public void setVisited() {
-            this.visited = true;
-        }
-
-        public void setRank(int i) {
-            this.rank = i;
-        }
-
-        public void sort() {
-            this.adjList.sort((v1, v2) -> {
-                return v1.name.compareToIgnoreCase(v2.name);
-            });
-        }
     }
 
-    @SuppressWarnings("unused")
+    static class Edge {
+        long weight;
+        Node next;
+
+        public Edge(long weight, Node next) {
+            this.weight = weight;
+            this.next = next;
+        }
+
+    }
+
     static class InputReader {
         private byte[] inbuf = new byte[2 << 23];
         public int lenbuf = 0, ptrbuf = 0;
@@ -216,6 +195,7 @@ class EIFOLTRE2 {
             return !(c >= 33 && c <= 126);
         }
 
+        @SuppressWarnings("unused")
         private double nextDouble() {
             return Double.parseDouble(next());
         }

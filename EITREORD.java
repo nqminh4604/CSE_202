@@ -1,39 +1,65 @@
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayDeque;
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.InputMismatchException;
-import java.util.List;
+import java.util.Map;
 import java.util.Queue;
 
 public class EITREORD {
-    StringBuilder sb = new StringBuilder();
+    static StringBuilder sb = new StringBuilder();
+    static Queue<Integer> preorder = new ArrayDeque<>();
+    static Map<Integer, Integer> inorder = new HashMap<>();
+    static Vertex[] vertice;
 
     public static void main(String[] args) {
         int numberOfNode = ni();
-        Queue<Integer> preorder = new ArrayDeque<>();
-        int[] inorder = new int[numberOfNode];
+        vertice = new Vertex[numberOfNode];
 
         for (int i = 0; i < numberOfNode; i++) {
+            vertice[i] = new Vertex(i);
             preorder.add(ni());
         }
 
-        for (int i = 0; i < inorder.length; i++) {
-            inorder[i] = ni();
+        for (int i = 0; i < numberOfNode; i++) {
+            inorder.put(ni(), i);
         }
-
-
+        Vertex root = vertice[preorder.poll()];
+        dfs(root, 0, numberOfNode);
+        System.out.println(sb);
     }
 
-    public static void postOrder() {
-        
+    public static void dfs(Vertex root, int start, int end) {
+        root.visit();
+        int rootIndex = inorder.get(root.id);
+        if (!preorder.isEmpty() && rootIndex > start) {
+            Vertex leftVertex = vertice[preorder.poll()];
+            int leftIndex = inorder.get(leftVertex.id);
+            if (leftIndex < rootIndex && leftIndex >= start && leftVertex.visited == false) {
+                dfs(leftVertex, start, rootIndex);
+                root.left = leftVertex;
+            }
+        }
+
+        if (!preorder.isEmpty() && rootIndex < end - 1) {
+            Vertex rightVertex = vertice[preorder.poll()];
+            int rightIndex = inorder.get(rightVertex.id);
+            if (rightIndex > rootIndex && rightIndex < end && rightVertex.visited == false) {
+                dfs(rightVertex, rootIndex + 1, end);
+                root.right = rightVertex;
+            }
+        }
+
+        sb.append(root.id + " ");
+
     }
 
     static class Vertex {
         int id;
         boolean visited;
-        List<Vertex> adjList = new ArrayList<>();
+        Vertex left;
+        Vertex right;
 
         public Vertex(int id) {
             this.id = id;
@@ -44,10 +70,13 @@ public class EITREORD {
             this.visited = true;
         }
 
-        public void addAdj(Vertex b) {
-            this.adjList.add(b);
+        public void setLeft(Vertex left) {
+            this.left = left;
         }
 
+        public void setRight(Vertex right) {
+            this.right = right;
+        }
     }
 
     static InputStream is = System.in;
